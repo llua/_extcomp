@@ -1,0 +1,33 @@
+#autoload
+
+# This is a utility function for commands that rely on cli libraries
+# to generate completers for zsh, printing them to stdout, to be sourced.
+# an example: https://github.com/urfave/cli
+# this anti-pattern slows down the start up of your shell.
+# This function offloads running the program until an actual completion attempt
+# for the command in question is made.
+
+# How to use:
+# save this file into one of the directories in your $fpath.
+# instead of adding `eval "$(foo completion zsh)"' to your .zshrc
+# add `compdef _extcomp foo'.
+# both pieces of advice requires to be added after bootstrapping the completion
+# system via `compinit'.
+# if you are using some framework/plugin manager/whatever, you may want to do
+# it after that crap is done.
+
+# if the binary does not load bashcompinit automatically, you can load it via:
+# zstyle ':completion::complete:command_goes_here::' use_bashcompinit true
+if zstyle -t ":completion:${curcontext}:" use_bashcompinit; then
+  autoload -Uz bashcompinit; $_
+fi
+
+# this is based on the eval "$(... completion zsh)" meme,
+# if your command needs to be invoked a different way for a completer to be
+# spat out, set the style completion-cmd via:
+# zstyle ':completion::complete:foo::' completion-cmd 'foo --read-my-mind'
+eval "$(_call_program completion-cmd $service completion zsh)"
+
+# unlike native completers, the value here isn't _$cmd
+# it is _bash_complete ... -F _entry_function (normally), hence the eval.
+eval $_comps[$service] '"$@"'
